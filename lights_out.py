@@ -200,7 +200,6 @@ def main(argv=None):
         print("Run this game in an interactive terminal (without -T).")
         return 0
 
-    # Docker provides these as layout defaults; curses should use the PTY size.
     os.environ.pop("COLUMNS", None)
     os.environ.pop("LINES", None)
     curses.use_env(False)

@@ -33,9 +33,9 @@ so the main game can import it without starting the terminal UI.
 from lights_out_game import LightsOutGame
 
 game = LightsOutGame(rows=5, cols=6, seed=42)
-game.press(1, 2)  # toggle row 1, column 2; coordinates are zero-based
+game.press(1, 2)
 
-print(game.board)       # immutable rows; True means a light is on
+print(game.board)
 print(game.move_count)
 print(game.is_solved())
 ```
