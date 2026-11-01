@@ -76,6 +76,25 @@ class LightsOutGame:
         self._move_count += 1
         return self.is_solved()
 
+    def press_from_text(self, coordinates):
+        """Press a cell from typed coordinates such as ``"1 2"``.
+
+        A comma may also separate the zero-based row and column. Malformed
+        input raises ``ValueError``; coordinates outside the board raise
+        ``IndexError``.
+        """
+        if not isinstance(coordinates, str):
+            raise TypeError("coordinates must be text")
+
+        parts = coordinates.replace(",", " ").split()
+        if len(parts) != 2:
+            raise ValueError("enter a row and column, for example '1 2'")
+        try:
+            row, col = (int(part) for part in parts)
+        except ValueError as error:
+            raise ValueError("row and column must be integers") from error
+        return self.press(row, col)
+
     def is_solved(self):
         """Return whether every light is on."""
         return all(all(row) for row in self._board)

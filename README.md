@@ -12,11 +12,12 @@ Start a 4x4 game:
 python lights_out.py
 ```
 
-Move the highlighted cell with the arrow keys or `W`, `A`, `S`, `D`. Press
-Space or Enter to toggle that light and its up, down, left, and right
-neighbors. Solving the board displays a victory message and move count. Press
-`n` for a new puzzle or `q` to quit. The terminal game requires an 80x24
-terminal.
+Type a row and column separated by a space, then press Enter to toggle that
+light and its up, down, left, and right neighbors. Coordinates start at zero;
+for example, `1 2` selects the second row and third column. The board labels
+show the available coordinates. Solving the board displays a victory message
+and move count. Press `n` for a new puzzle or `q` to quit. The terminal game
+requires an 80x24 terminal.
 
 Set a custom rectangular board size with command-line options:
 
@@ -33,7 +34,7 @@ so the main game can import it without starting the terminal UI.
 from lights_out_game import LightsOutGame
 
 game = LightsOutGame(rows=5, cols=6, seed=42)
-game.press(1, 2)
+game.press_from_text("1 2")
 
 print(game.board)
 print(game.move_count)

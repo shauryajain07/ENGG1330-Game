@@ -24,8 +24,9 @@ def _positive_dimension(text):
 
 def _board_fits_play_area(rows, cols):
     row_label_width = len(str(rows - 1))
-    board_line_width = row_label_width + 2 + 4 * cols
-    return rows + 4 <= HEIGHT and board_line_width <= WIDTH - 1
+    column_width = max(3, len(str(cols - 1)))
+    board_line_width = row_label_width + 3 + cols * column_width + cols - 1
+    return rows + 5 <= HEIGHT and board_line_width <= WIDTH - 1
 
 
 def _put(screen, row, text, style=0):
@@ -33,7 +34,7 @@ def _put(screen, row, text, style=0):
     screen.addnstr(row, 0, text, WIDTH - 1, style)
 
 
-def _draw_screen(screen, game, message, selected_row, selected_col):
+def _draw_screen(screen, game, message, input_text):
     move_text = str(game.move_count)
     if len(move_text) > 16:
         move_text = "..." + move_text[-16:]
@@ -44,8 +45,7 @@ def _draw_screen(screen, game, message, selected_row, selected_col):
     else:
         status = "ON [#]   OFF [ ]   Moves: {}".format(move_text)
         help_text = message or (
-            "Goal: all lights ON. Arrows/WASD move; Space/Enter toggles; "
-            "n=new; q=quit."
+            "Goal: all lights ON. Type row col + Enter (0-based); n=new; q=quit."
         )
 
     screen.erase()
@@ -54,23 +54,30 @@ def _draw_screen(screen, game, message, selected_row, selected_col):
     _put(screen, 2, help_text)
 
     row_label_width = len(str(game.rows - 1))
+    column_width = max(3, len(str(game.cols - 1)))
+    board_prefix = " " * (row_label_width + 3)
+    column_labels = board_prefix + " ".join(
+        "{:^{width}}".format(col_index, width=column_width)
+        for col_index in range(game.cols)
+    )
+    _put(screen, 3, column_labels)
+
     for row_index, row in enumerate(game.board):
-        screen_row = row_index + 3
+        screen_row = row_index + 4
         prefix = "{:>{width}} | ".format(row_index, width=row_label_width)
         _put(screen, screen_row, prefix)
         column = len(prefix)
         for col_index, is_on in enumerate(row):
             cell = "[#]" if is_on else "[ ]"
-            style = (
-                curses.A_REVERSE
-                if row_index == selected_row and col_index == selected_col
-                else curses.A_NORMAL
+            screen.addnstr(
+                screen_row, column, cell.center(column_width), column_width
             )
-            screen.addnstr(screen_row, column, cell, len(cell), style)
-            column += len(cell)
+            column += column_width
             if col_index < game.cols - 1:
                 screen.addnstr(screen_row, column, " ", 1)
                 column += 1
+
+    _put(screen, game.rows + 4, "Move (row col): {}".format(input_text))
 
     screen.refresh()
 
@@ -84,15 +91,10 @@ def _draw_resize_message(screen, rows, cols):
     screen.refresh()
 
 
-def _read_key(screen, game, message, selected_row, selected_col):
-    """Read a key while pausing play if the terminal is too small."""
+def _read_move(screen, game, message):
+    """Read a coordinate pair, or a new-game/quit command."""
     previous_size = None
-    movement_keys = {
-        curses.KEY_UP: "up",
-        curses.KEY_DOWN: "down",
-        curses.KEY_LEFT: "left",
-        curses.KEY_RIGHT: "right",
-    }
+    input_text = ""
 
     while True:
         actual_size = os.get_terminal_size(sys.stdin.fileno())
@@ -103,7 +105,7 @@ def _read_key(screen, game, message, selected_row, selected_col):
         if size != previous_size:
             previous_size = size
             if size[0] >= HEIGHT and size[1] >= WIDTH:
-                _draw_screen(screen, game, message, selected_row, selected_col)
+                _draw_screen(screen, game, message, input_text)
             else:
                 _draw_resize_message(screen, *size)
 
@@ -116,15 +118,23 @@ def _read_key(screen, game, message, selected_row, selected_col):
             previous_size = None
             continue
         if key in ("q", "Q", "\x03"):
-            return "q"
+            return "quit", ""
         if size[0] < HEIGHT or size[1] < WIDTH:
             continue
-        if key in movement_keys:
-            return movement_keys[key]
+        if key in ("n", "N"):
+            return "new", ""
+        if key in (curses.KEY_ENTER, "\r", "\n"):
+            if input_text.strip():
+                return "coordinates", input_text
+            continue
+        if key in (curses.KEY_BACKSPACE, "\b", "\x7f"):
+            input_text = input_text[:-1]
+            _draw_screen(screen, game, message, input_text)
+            continue
         if isinstance(key, str):
-            if key in ("\r", "\n"):
-                return "enter"
-            return key.lower()
+            if key.isprintable() and len(input_text) < 24:
+                input_text += key
+                _draw_screen(screen, game, message, input_text)
 
 
 def _run_game(screen, rows, cols):
@@ -138,40 +148,27 @@ def _run_game(screen, rows, cols):
 
     game = LightsOutGame(rows=rows, cols=cols)
     message = ""
-    selected_row = 0
-    selected_col = 0
-    movements = {
-        "up": (-1, 0),
-        "w": (-1, 0),
-        "down": (1, 0),
-        "s": (1, 0),
-        "left": (0, -1),
-        "a": (0, -1),
-        "right": (0, 1),
-        "d": (0, 1),
-    }
 
     while True:
-        key = _read_key(screen, game, message, selected_row, selected_col)
-        if key == "q":
+        command, coordinates = _read_move(screen, game, message)
+        if command == "quit":
             return
-        if key == "n":
+        if command == "new":
             game.shuffle()
-            message = "New puzzle. Move the highlighted cell."
-            selected_row = 0
-            selected_col = 0
+            message = "New puzzle. Enter a row and column to toggle a cell."
             continue
         if game.is_solved():
+            message = "Already solved. Press n for a new puzzle or q to quit."
             continue
 
-        if key in movements:
-            row_delta, col_delta = movements[key]
-            selected_row = min(max(selected_row + row_delta, 0), game.rows - 1)
-            selected_col = min(max(selected_col + col_delta, 0), game.cols - 1)
-            message = ""
-        elif key in (" ", "enter"):
-            game.press(selected_row, selected_col)
-            message = ""
+        try:
+            game.press_from_text(coordinates)
+        except (ValueError, IndexError):
+            message = "Enter row col: row 0-{}, column 0-{}.".format(
+                game.rows - 1, game.cols - 1
+            )
+            continue
+        message = ""
 
 
 def main(argv=None):
