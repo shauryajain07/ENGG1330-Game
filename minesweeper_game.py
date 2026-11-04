@@ -61,7 +61,7 @@ class MinesweeperGame:
         self.put(3, "\"quit\" or \"q\" to quit the game, \"help\" for more details for how to play", self.STYLES["title"])
         self.put(4, "Input the operation you want to perform with the coordinates x y: (except \"quit\", \"help\", and \"hint\" operations)", self.STYLES["title"])
         self.put(5, "\"hint\" for a hint, which costs 10 navigation chips" , self.STYLES["title"])
-        self.put(6, "Total navigation chips needed: 80", self.STYLES["title"])
+        self.put(6, "Total navigation chips needed: 8", self.STYLES["title"])
         self.put(7, "----------------------------------------------------------------------------------------------------", self.STYLES["title"])
         self.put(8, "    1  2  3  4  5  6  7  8  9 ", self.STYLES["title"])
         self.put(9, "                              ", self.STYLES["title"])
@@ -461,13 +461,13 @@ class MinesweeperGame:
                 continue
             ret = ret.decode('utf-8').strip().lower()    
             if ret in ("easy", "e"):
-                return (10, 20)
+                return (10, 2)
             elif ret in ("medium", "m"):
-                return (12, 30)
+                return (12, 3)
             elif ret in ("hard", "h"):
-                return (15, 50)
+                return (15, 5)
             elif ret in ("nightmare", "n"):
-                return (20, 80)
+                return (20, 8)
             else:
                 message = "Invalid input, please type again"
 
@@ -522,8 +522,8 @@ class MinesweeperGame:
                 self.how_to_play()
                 continue
             if input_arr[0] == "hint":
-                if self.navigation_chip_count >= 10:
-                    self.navigation_chip_count -= 10
+                if self.navigation_chip_count >= 1:
+                    self.navigation_chip_count -= 1
                     self.message, self.typ =self.provide_hint()
                     continue
                     # Provide a hint
