@@ -58,10 +58,11 @@ class MinesweeperGame:
         self.put(0, "This is a minesweeper game, you can do the following operations:", self.STYLES["title"])
         self.put(1, "\"tap\" or \"t\" to open a block, \"flag\" or \"f\" to mark/unmark a block", self.STYLES["title"])
         self.put(2, "\"break\" or \"b\" to break blocks within 3x3 area of a number if correct number of flags are marked", self.STYLES["title"])
-        self.put(3, "\"quit\" or \"q\" to quit the game, \"help\" or \"h\" for more details for how to play", self.STYLES["title"])
-        self.put(4, "Input the operation you want to perform with the coordinates x y: (except \"quit\" operation)", self.STYLES["title"])
-        self.put(5, "For example: \"tap 1 2\" to open the block at row 1 column 2", self.STYLES["title"])
-        self.put(6, "----------------------------------------------------------------------------------------------------", self.STYLES["title"])
+        self.put(3, "\"quit\" or \"q\" to quit the game, \"help\" for more details for how to play", self.STYLES["title"])
+        self.put(4, "Input the operation you want to perform with the coordinates x y: (except \"quit\", \"help\", and \"hint\" operations)", self.STYLES["title"])
+        self.put(5, "\"hint\" for a hint, which costs 10 navigation chips" , self.STYLES["title"])
+        self.put(6, "Total navigation chips needed: 80", self.STYLES["title"])
+        self.put(7, "----------------------------------------------------------------------------------------------------", self.STYLES["title"])
         self.put(8, "    1  2  3  4  5  6  7  8  9 ", self.STYLES["title"])
         self.put(9, "                              ", self.STYLES["title"])
         for i in range(9):
@@ -74,7 +75,7 @@ class MinesweeperGame:
 
     def print_how_to_play(self, page, message, typ):
         self.screen.erase()
-        self.put(0, "This is \"How to Play\" session", self.STYLES["title"])
+        self.put(0, "This is \"How to Play\" session, current page is " + str(page + 1) + "/4", self.STYLES["title"])
         self.put(1, "Press \"l\" to go to previous page, \"r\" to go to the next page", self.STYLES["title"])
         if page == 0:
             self.put(2, "This is the \"tap\" operation, it can open a block", self.STYLES["title"])
@@ -460,17 +461,48 @@ class MinesweeperGame:
                 continue
             ret = ret.decode('utf-8').strip().lower()    
             if ret in ("easy", "e"):
-                return (10, 1)
+                return (10, 20)
             elif ret in ("medium", "m"):
-                return (12, 3)
+                return (12, 30)
             elif ret in ("hard", "h"):
-                return (15, 5)
+                return (15, 50)
             elif ret in ("nightmare", "n"):
-                return (20, 8)
+                return (20, 80)
             else:
                 message = "Invalid input, please type again"
 
-        
+    def check_hint(self, x, y):
+        if self.map[x][y] == "X" or self.board[x][y].isdigit() == True:
+            return 4
+        dx4 = [-1, 0, 0, 1]
+        dy4 = [0, -1, 1, 0]
+        for k in range(4):
+            ni, nj = x + dx4[k], y + dy4[k]
+            if 0 <= ni < 9 and 0 <= nj < 9 and self.board[ni][nj].isdigit() == True:
+                if self.map[x][y] == "0":
+                    return 0
+                else:
+                    return 1
+        dx8 = [-1, -1, -1, 0, 0, 1, 1, 1]
+        dy8 = [-1, 0, 1, -1, 1, -1, 0, 1]
+        for k in range(8):
+            ni, nj = x + dx8[k], y + dy8[k]
+            if 0 <= ni < 9 and 0 <= nj < 9 and self.board[ni][nj].isdigit() == True:
+                if self.map[x][y] == "0":
+                    return 0
+                else:
+                    return 2
+        return 3
+    
+
+    def provide_hint(self):
+        for x in range(4):
+            target_blocks = [(i, j) for i in range(9) for j in range(9) if self.check_hint(i, j) == x]
+            if len(target_blocks) > 0:
+                hint_block = random.choice(target_blocks)
+                return ("Try tap block at (" + str(hint_block[0] + 1) + ", " + str(hint_block[1] + 1) + ")", "success")
+        return ("No hints available at the moment.", "warning")
+
 
     def play_round(self):
         self.mines_left, self.reward = self.difficulty_option()
@@ -486,8 +518,18 @@ class MinesweeperGame:
                 continue
             if input_arr[0] == "quit" or input_arr[0] == "q":
                 return False
-            if input_arr[0] == "help" or input_arr[0] == "h":
+            if input_arr[0] == "help":
                 self.how_to_play()
+                continue
+            if input_arr[0] == "hint":
+                if self.navigation_chip_count >= 10:
+                    self.navigation_chip_count -= 10
+                    self.message, self.typ =self.provide_hint()
+                    continue
+                    # Provide a hint
+                else:
+                    self.message = "Not enough navigation chips for a hint."
+                    self.typ = "warning"
                 continue
             if len(input_arr) != 3 or input_arr[0] not in ("tap", "t", "flag", "f", "break", "b") or input_arr[1].isdigit() == False or input_arr[2].isdigit() == False or int(input_arr[1]) < 1 or int(input_arr[1]) > 9 or int(input_arr[2]) < 1 or int(input_arr[2]) > 9:
                 self.message = "Invalid input, please input your operation and coordinates to perform the operation, or \"quit\" to quit the game."
