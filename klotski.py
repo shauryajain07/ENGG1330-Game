@@ -7,8 +7,7 @@ import textwrap
 #change the number of rounds in klotski_gameCount, klotski_moveCount, win exception (~line 220) and update the message in initialise_board (~line 240)
 #other dimensions than 4*5 are not yet tested but should be fine; but the dimensions must be consistent since the dimensions of the board is fixed in initialise_board() (default 4*5)
 #klotski_board and klotski_currentPieces can become async and is synced in move_piece() and reset_board() (using initialise_board); always update klotski_board, klotski_currentPieces from initialise_game() to avoid async between rounds
-#returns new difficulty as numbers 0,1,2 directly
-# ---- delete print_wrap(), clear_terminal() and MAX_WIDTH, MAX_HEIGHT when merging; but do import copy ----
+#returns new difficulty as numbers 0,1,2 directly, and remaining energy after this minigame as tuple
 
 class klotski:
     def __init__(self):
@@ -19,12 +18,13 @@ class klotski:
         self.klotski_currentPieces = {}
         self.klotski_moveThreshold = 35
         self.klotski_difficultyRate = "randomised"
+        self.klotski_energy = 0
         self.MAX_WIDTH = 80
         self.MAX_HEIGHT = 24
         self.klotski_usedBoards = []
         self.effectiveDifficulty = None
 
-    def play_klotski(self, difficulty=None):
+    def play_klotski(self, difficulty=None, energy=None):
         def initialise_pieces(last_board=None, difficulty=difficulty):
             pieceArrangements = [ #row and col coords are the top left corner of piece, size is (height, width)
                 #board 0 below
@@ -191,7 +191,7 @@ class klotski:
             hard: 8, 9, 10
             '''
 
-            if last_board is not None:
+            if last_board is not None: #for reset
                 piece = copy.deepcopy(pieceArrangements[last_board])
                 return piece
 
@@ -216,9 +216,9 @@ class klotski:
                 self.klotski_difficultyRate = "hard"
                 index = random.choice(hardBoards)
 
-            #index = 6 #specify board here if needed
+            #index = 11 #specify board here if needed
 
-            if not self.klotski_usedBoards or index not in self.klotski_usedBoards or len(self.klotski_usedBoards) != 3:
+            if not self.klotski_usedBoards or index not in self.klotski_usedBoards or len(self.klotski_usedBoards) != 3: #win condition
                 piece = copy.deepcopy(pieceArrangements[index])
                 self.klotski_usedBoards.append(index)
             else:
@@ -250,7 +250,210 @@ class klotski:
 
             return klotski_board, klotski_currentPieces
 
-        def print_wrap(text, delay=0.02): #directly copied from main code; delete when merge
+        def hint_arrangement(cuurentBoardIndex):
+            hintArrangements = [
+                # Board 0
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 1, 'col': 0, 'size': (2, 1)},
+                    'B': {'row': 0, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 3, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 2, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 0, 'size': (1, 2)},
+                    'F': {'row': 1, 'col': 1, 'size': (1, 1)},
+                    'G': {'row': 0, 'col': 2, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 3, 'size': (1, 1)},
+                    'I': {'row': 1, 'col': 2, 'size': (1, 1)},
+                },
+                # Board 1
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 1, 'col': 0, 'size': (2, 1)},
+                    'B': {'row': 0, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 3, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 2, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 0, 'size': (1, 2)},
+                    'F': {'row': 1, 'col': 1, 'size': (1, 1)},
+                    'G': {'row': 0, 'col': 2, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 2, 'size': (1, 1)},
+                    'I': {'row': 1, 'col': 2, 'size': (1, 1)},
+                },
+                # Board 2
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 0, 'col': 1, 'size': (2, 1)},
+                    'B': {'row': 1, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 0, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 3, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 2, 'size': (1, 2)},
+                    'F': {'row': 4, 'col': 0, 'size': (1, 1)},
+                    'G': {'row': 1, 'col': 2, 'size': (1, 1)},
+                    'H': {'row': 2, 'col': 0, 'size': (1, 1)},
+                    'I': {'row': 4, 'col': 2, 'size': (1, 1)},
+                },
+                # Board 3
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 1, 'col': 0, 'size': (2, 1)},
+                    'B': {'row': 2, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 3, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 0, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 1, 'col': 1, 'size': (1, 2)},
+                    'F': {'row': 0, 'col': 2, 'size': (1, 1)},
+                    'G': {'row': 0, 'col': 1, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 1, 'size': (1, 1)},
+                    'I': {'row': 4, 'col': 2, 'size': (1, 1)},
+                },
+                # Board 4
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 1, 'col': 0, 'size': (2, 1)},
+                    'B': {'row': 0, 'col': 2, 'size': (2, 1)},
+                    'C': {'row': 3, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 0, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 0, 'size': (1, 2)},
+                    'F': {'row': 4, 'col': 2, 'size': (1, 1)},
+                    'G': {'row': 1, 'col': 1, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 1, 'size': (1, 1)},
+                    'I': {'row': 3, 'col': 3, 'size': (1, 1)},
+                },
+                # Board 5
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 0, 'col': 0, 'size': (2, 1)},
+                    'B': {'row': 2, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 2, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 0, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 1, 'col': 1, 'size': (1, 2)},
+                    'F': {'row': 0, 'col': 2, 'size': (1, 1)},
+                    'G': {'row': 0, 'col': 1, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 2, 'size': (1, 1)},
+                    'I': {'row': 4, 'col': 1, 'size': (1, 1)},
+                },
+                # Board 6
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 0, 'col': 0, 'size': (2, 1)},
+                    'B': {'row': 3, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 2, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 0, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 1, 'col': 1, 'size': (1, 2)},
+                    'F': {'row': 0, 'col': 2, 'size': (1, 1)},
+                    'G': {'row': 0, 'col': 1, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 1, 'size': (1, 1)},
+                    'I': {'row': 4, 'col': 2, 'size': (1, 1)},
+                },
+                # Board 7
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 1, 'col': 0, 'size': (2, 1)},
+                    'B': {'row': 0, 'col': 2, 'size': (2, 1)},
+                    'C': {'row': 3, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 0, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 0, 'size': (1, 2)},
+                    'F': {'row': 4, 'col': 3, 'size': (1, 1)},
+                    'G': {'row': 1, 'col': 1, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 1, 'size': (1, 1)},
+                    'I': {'row': 3, 'col': 3, 'size': (1, 1)},
+                },
+                # Board 8
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 0, 'col': 1, 'size': (2, 1)},
+                    'B': {'row': 1, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 0, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 3, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 2, 'size': (1, 2)},
+                    'F': {'row': 4, 'col': 1, 'size': (1, 1)},
+                    'G': {'row': 1, 'col': 2, 'size': (1, 1)},
+                    'H': {'row': 3, 'col': 0, 'size': (1, 1)},
+                    'I': {'row': 4, 'col': 2, 'size': (1, 1)},
+                },
+                # Board 9
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'D': {'row': 0, 'col': 1, 'size': (2, 1)},
+                    'A': {'row': 1, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 0, 'col': 0, 'size': (2, 1)},
+                    'B': {'row': 3, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 2, 'size': (1, 2)},
+                    'F': {'row': 4, 'col': 1, 'size': (1, 1)},
+                    'G': {'row': 1, 'col': 2, 'size': (1, 1)},
+                    'I': {'row': 4, 'col': 0, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 2, 'size': (1, 1)},
+                },
+                # Board 10
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 0, 'col': 1, 'size': (2, 1)},
+                    'B': {'row': 1, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 0, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 3, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 2, 'size': (1, 2)},
+                    'F': {'row': 4, 'col': 1, 'size': (1, 1)},
+                    'G': {'row': 1, 'col': 2, 'size': (1, 1)},
+                    'H': {'row': 4, 'col': 0, 'size': (1, 1)},
+                    'I': {'row': 4, 'col': 2, 'size': (1, 1)},
+                },
+                # Board 11
+                {
+                    'X': {'row': 2, 'col': 1, 'size': (2, 2)},
+                    'A': {'row': 0, 'col': 1, 'size': (2, 1)},
+                    'B': {'row': 1, 'col': 3, 'size': (2, 1)},
+                    'C': {'row': 0, 'col': 0, 'size': (2, 1)},
+                    'D': {'row': 3, 'col': 3, 'size': (2, 1)},
+                    'E': {'row': 0, 'col': 2, 'size': (1, 2)},
+                    'F': {'row': 3, 'col': 0, 'size': (1, 1)},
+                    'G': {'row': 1, 'col': 2, 'size': (1, 1)},
+                    'H': {'row': 2, 'col': 0, 'size': (1, 1)},
+                    'I': {'row': 4, 'col': 2, 'size': (1, 1)},
+                },
+            ]
+            clear_terminal()
+
+            hint_board = [[' ' for _ in range(4)] for _ in range(5)] #create a list of 5 lists (rows), each with 4 elements (columns); change here also if dimension changes
+                
+            for piece, info in hintArrangements[cuurentBoardIndex].items():
+                row, col = info['row'], info['col']
+                height, width = info['size']
+                for r in range(row, row + height):
+                    for c in range(col, col + width):
+                        hint_board[r][c] = piece
+
+            for index,row in enumerate(hint_board):
+                if index == 0:
+                    print('+---------+')
+                for rowIndex,item in enumerate(row):
+                    if rowIndex == 0:
+                        print('|', end=' ')
+                    print(item, end=' ')
+                    if rowIndex == len(row) - 1:
+                        print('|', end=' ')
+                print()
+                if index == len(hint_board) - 1:
+                    print('+---   ---+')  
+
+            print_wrap("Hint: This is an intermediate arrangement of pieces to solve the current puzzle. Use it as a reference to guide your moves.")
+            input('Press Enter to continue...')
+            display_board(self.klotski_board)
+
+        def display_hint(cuurentBoardIndex, energy=self.klotski_energy):
+            if energy==None:
+                hint_arrangement(cuurentBoardIndex)
+            elif energy>0:
+                clear_terminal()
+                print_wrap(f"You have {energy} hint energy left. Using a hint will cost 1 energy. Are you sure you want to use a hint? (y/n): ")
+                if input().lower() == 'y':
+                    self.klotski_energy -= 1
+                    hint_arrangement(cuurentBoardIndex)
+                else:
+                    self.klotski_errorMessage = "Hint usage cancelled."
+                    display_board(self.klotski_board)
+            else:
+                self.klotski_errorMessage = "You have no energy left to use hints."
+                display_board(self.klotski_board)
+
+        def print_wrap(text, delay=0.02):
             """Prints text wrapped to the 80-column terminal constraint."""
             paragraphs = text.split('\n')
             for p in paragraphs:
@@ -261,7 +464,7 @@ class klotski:
                     print(wrapped)
                     time.sleep(delay)
 
-        def clear_terminal(): #delete this when merging
+        def clear_terminal():
             """Simulates clearing the terminal by printing newlines, staying within 24 rows."""
             print("\n" * self.MAX_HEIGHT)
         
@@ -271,6 +474,7 @@ class klotski:
             print("[Mini-game 3: Klotski]")
             print(f"Difficulty: {self.klotski_difficultyRate}")
             print(f"Total moves made: {sum(self.klotski_moveCount)}")
+            print(f"Energy left: {self.klotski_energy}")
             for index,row in enumerate(klotski_board):
                 if index == 0:
                     print('+---------+')
@@ -289,12 +493,17 @@ class klotski:
 
         def get_user_input():
             while True:
-                print_wrap("Enter move (e.g., A up, B down, etc.), ':r' to reset board, or ':q' to exit: ")
+                if self.klotski_energy is not None:
+                    print_wrap("Enter move (e.g., A up, B down, etc.), ':r' to reset board, or 'h' for hint: ")
+                else:
+                    print_wrap("Enter move (e.g., A up, B down, etc.), ':r' to reset board, ':h' for hint, or ':q' to exit: ")
                 user_input = input("")
                 if user_input.lower() == ':q':
                     return 'quit'
                 if user_input.lower() == ':r':
                     return 'reset'
+                if user_input.lower() == ':h':
+                    return 'hint'
 
                 parts = user_input.split()
                 if len(parts) == 2 and parts[0].isalpha() and parts[1] in ['up', 'down', 'left', 'right']:
@@ -360,6 +569,8 @@ class klotski:
             self.klotski_moveCount[-(self.klotski_gameCount-3)] = 0
 
             return klotski_board, klotski_currentPieces
+        
+        self.klotski_energy = energy
 
         try:
             self.klotski_board, self.klotski_currentPieces = initialise_game(self.klotski_gameCount, difficulty=difficulty)
@@ -379,6 +590,10 @@ class klotski:
                     self.klotski_board, self.klotski_currentPieces = reset_board(self.klotski_usedBoards[-1])
                     display_board(self.klotski_board)
                     continue
+                if user_input == 'hint':
+                    #print(self.klotski_usedBoards[-1])
+                    display_hint(self.klotski_usedBoards[-1], energy=self.klotski_energy)
+                    continue
 
                 piece, direction = user_input
                 move_piece(self.klotski_board, self.klotski_currentPieces, piece, direction)
@@ -392,12 +607,12 @@ class klotski:
             clear_terminal()
             print_wrap(f"\nCongratulations! You've retrieved all the engine parts with {sum(self.klotski_moveCount)} moves!\n")
             input()
-            if sum(self.klotski_moveCount) < self.klotski_moveThreshold and self.effectiveDifficulty != 0:
-                return (self.effectiveDifficulty-1)
-            elif sum(self.klotski_moveCount) == self.klotski_moveThreshold or self.effectiveDifficulty == 2 or self.effectiveDifficulty == 0:
-                return (self.effectiveDifficulty)
+            if sum(self.klotski_moveCount) < self.klotski_moveThreshold and self.effectiveDifficulty != 2:
+                return (self.effectiveDifficulty+1, self.klotski_energy)
+            elif sum(self.klotski_moveCount) == self.klotski_moveThreshold or self.effectiveDifficulty == 0:
+                return (self.effectiveDifficulty, self.klotski_energy)
             elif sum(self.klotski_moveCount) > self.klotski_moveThreshold:
-                return (self.effectiveDifficulty+1)
+                return (self.effectiveDifficulty-1, self.klotski_energy)
 
 if __name__ == "__main__":
     game = klotski()
