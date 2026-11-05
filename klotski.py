@@ -19,6 +19,7 @@ class klotski:
         self.klotski_moveThreshold = 35
         self.klotski_difficultyRate = "randomised"
         self.klotski_energy = 0
+        self.klotski_hasHinted = False
         self.MAX_WIDTH = 80
         self.MAX_HEIGHT = 24
         self.klotski_usedBoards = []
@@ -438,13 +439,15 @@ class klotski:
             display_board(self.klotski_board)
 
         def display_hint(cuurentBoardIndex, energy=self.klotski_energy):
-            if energy==None:
+            if energy==None or self.klotski_hasHinted:
                 hint_arrangement(cuurentBoardIndex)
+                self.klotski_hasHinted = True
             elif energy>0:
                 clear_terminal()
                 print_wrap(f"You have {energy} hint energy left. Using a hint will cost 1 energy. Are you sure you want to use a hint? (y/n): ")
                 if input().lower() == 'y':
                     self.klotski_energy -= 1
+                    self.klotski_hasHinted = True
                     hint_arrangement(cuurentBoardIndex)
                 else:
                     self.klotski_errorMessage = "Hint usage cancelled."
@@ -494,7 +497,7 @@ class klotski:
         def get_user_input():
             while True:
                 if self.klotski_energy is not None:
-                    print_wrap("Enter move (e.g., A up, B down, etc.), ':r' to reset board, or 'h' for hint: ")
+                    print_wrap("Enter move (e.g., A up, B down, etc.), ':r' to reset board, or ':h' for hint: ")
                 else:
                     print_wrap("Enter move (e.g., A up, B down, etc.), ':r' to reset board, ':h' for hint, or ':q' to exit: ")
                 user_input = input("")
@@ -600,6 +603,7 @@ class klotski:
                 display_board(self.klotski_board)
             elif not self.klotski_gameCount == 0:
                 self.klotski_gameCount -= 1
+                self.klotski_hasHinted = False
                 print_wrap("Congratulations! You've retrieved the engine part! Press Enter to continue...")
                 input()
                 self.klotski_board, self.klotski_currentPieces = initialise_game(self.klotski_gameCount)
