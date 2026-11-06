@@ -11,9 +11,3 @@ cd path/to/ENGG1330
 ```bash
 python3 main.py
 ```
-
-## Run the tests
-
-```bash
-python3 -m unittest discover -s tests -t .
-```
