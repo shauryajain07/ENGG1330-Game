@@ -49,7 +49,7 @@ CHOICES = {
     "goose": {
         "title": "A KNOCK FROM NOWHERE  //  BEFORE CHAPTER 2",
         "art": art.SIGNAL,
-        "text": "The life support grid is failing. Then something strange: its "
+        "text": "The life support grid is failing, strangely, its "
                 "switches start flipping by themselves, tapping out a pattern.\n"
                 "TARS: \"That is not me. Something beyond the wormhole is "
                 "knocking.\"",
@@ -101,7 +101,7 @@ CHOICE_RESULTS = {
     "laser": (art.KIP_AWAKE, "KIP wakes at full speed, bounces off three walls, "
                              "shoves a crate aside and sticks itself to the "
                              "ceiling.\n\n[+1 FREE BAY HINT]"),
-    "lift_friend": (art.KIP_AWAKE, "KIP remembers its antenna. It beeps, floats off "
+    "lift_friend": (art.KIP_AWAKE, "KIP remembers you fixing antenna. It beeps, floats off "
                                    "the core and projects a bay blueprint on the "
                                    "wall.\n\n[+1 FREE BAY HINT]"),
     "lift_angry": (art.KIP_AWAKE, "KIP does not know you yet. It flashes red and "
