@@ -5,7 +5,7 @@
 Needs Python 3 and a terminal of at least 80 x 24.
 
 ```bash
-git clone https://github.com/shauryajain07/ENGG1330-Game.git
+git clone https://github.com/shauryajain07/ENGG1330-Game.git](https://github.com/shauryajain07/ENGG1330-Game.git
 ```
 
 ```bash
