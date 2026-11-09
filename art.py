@@ -22,7 +22,6 @@ TITLE_SHIP = to_lines(r"""
   <==== ODYSSEY-7 ====>==-   '. '-~~~~-' .'
        \_________/              '-~~~~~~-'     .
     *          .        *          WORMHOLE
-cadet=easy PILOT=normal commander=hard
 """)
 
 SHIP = to_lines(r"""
