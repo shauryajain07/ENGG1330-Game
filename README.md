@@ -41,10 +41,8 @@ docker run --rm -it -v "$PWD:/workspace" -w /workspace \
 ```
 
 The Compose file uses the provided image without building a custom image or
-installing packages. The submission ZIP contains the game at its root and
-excludes `.git` and its history; the original checkout keeps its `.git` folder.
-The game needs an interactive terminal and does not accept piped or redirected
-input.
+installing packages. The game needs an interactive terminal and does not
+accept piped or redirected input.
 
 ## Project layout
 
