@@ -1,3 +1,4 @@
+# Narrative data is keyed by the stage names used in Adventure.
 import art
 
 

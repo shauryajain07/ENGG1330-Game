@@ -1,3 +1,4 @@
+# Standalone Lights Out interface; WORMHOLE reuses its rules from lights_out_game.py.
 import argparse
 import curses
 import os

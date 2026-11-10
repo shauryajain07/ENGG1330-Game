@@ -189,6 +189,7 @@ class MinesweeperGame:
                 now = (now + 1) % 4
 
     def generate_map(self):
+        # Choose each mine using the remaining-mine ratio to end with an exact count.
         map = [[" " for _ in range(9)] for _ in range(9)]
         blocks = 81
         mines = self.mines_left
@@ -205,6 +206,7 @@ class MinesweeperGame:
             for j in range(9):
                 if map[i][j] == "X":
                     continue
+                # Count adjacent mines once, then use the number during play.
                 cnt = 0
                 for k in range(8):
                     ni, nj = i + dx[k], j + dy[k]
@@ -215,6 +217,7 @@ class MinesweeperGame:
                     target.append((i, j))
         (x, y) = random.choice(target)
         board = [[" " for _ in range(9)] for _ in range(9)]
+        # Reveal from a zero using a queue so its safe numbered border opens too.
         queue = [(x, y)]
         board[x][y] = map[x][y]
         pos = 0
@@ -305,6 +308,7 @@ class MinesweeperGame:
         else:
             self.board[x][y] = self.map[x][y]
             if self.map[x][y] == "0":
+                # A zero flood-fills connected safe cells and stops at numbered cells.
                 dx = [-1, -1, -1, 0, 0, 1, 1, 1]
                 dy = [-1, 0, 1, -1, 1, -1, 0, 1]
                 queue = [(x, y)]
@@ -343,6 +347,7 @@ class MinesweeperGame:
             ni, nj = x + dx[k], y + dy[k]
             if 0 <= ni < 9 and 0 <= nj < 9 and self.board[ni][nj] == "F":
                 flag_count += 1
+        # Chording only opens neighbours when the marked count matches the clue.
         if flag_count != int(self.board[x][y]):
             return ("The number of flags around this block is not equal to the number on this block.", "warning", True)
         for k in range(8):
@@ -394,6 +399,7 @@ class MinesweeperGame:
         return ("", "", True)
 
     def check_win(self):
+        # The player wins by revealing every safe cell; mines need not be flagged.
         win = True
         for i in range(9):
             for j in range(9):

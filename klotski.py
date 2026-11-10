@@ -3,6 +3,12 @@ import copy
 import time
 import textwrap
 
+
+def is_klotski_won(board):
+    # The 2x2 core reaches the exit when its top-left corner is at row 3, column 1.
+    return board[3][1] == 'X' and board[4][2] == 'X'
+
+
 #lowercase input is fine
 #change the number of rounds in klotski_gameCount, klotski_moveCount, win exception (~line 220) and update the message in initialise_board (~line 240)
 #other dimensions than 4*5 are not yet tested but should be fine; but the dimensions must be consistent since the dimensions of the board is fixed in initialise_board() (default 4*5)
@@ -27,6 +33,7 @@ class klotski:
 
     def play_klotski(self, difficulty=None, energy=None):
         def initialise_pieces(last_board=None, difficulty=difficulty):
+            # SOU Cheng Hei's AI-assisted layouts are disclosed in ai_use.md.
             pieceArrangements = [ #row and col coords are the top left corner of piece, size is (height, width)
                 #board 0 below
                 {
@@ -229,6 +236,7 @@ class klotski:
             return piece
 
         def initialise_board(klotski_gameCount,klotski_currentPieces):
+            # Expand each piece rectangle into the shared 5-row by 4-column grid.
             self.klotski_board = [[' ' for _ in range(4)] for _ in range(5)] #create a list of 5 lists (rows), each with 4 elements (columns); change here also if dimension changes
             
             for piece, info in klotski_currentPieces.items():
@@ -252,6 +260,7 @@ class klotski:
             return klotski_board, klotski_currentPieces
 
         def hint_arrangement(cuurentBoardIndex):
+            # Keep hint layouts in the same index order as pieceArrangements.
             hintArrangements = [
                 # Board 0
                 {
@@ -538,7 +547,8 @@ class klotski:
                 self.klotski_errorMessage = "Invalid direction."
                 return
 
-            #checks if 1) the new position is within the board boundaries and 2) if the new position is empty or occupied by the same piece, i.e. (' ' or piece)
+            # A move is legal only when every destination cell stays on the board
+            # and is empty or already belongs to this piece.
             if (0 <= newRow and newRow + height <= 5 and 0 <= newCol and newCol + width <= 4 and all(klotski_board[r][c] in (' ', piece) for r in range(newRow, newRow + height) for c in range(newCol, newCol + width))):
                 for r in range(row, row + height):
                     for c in range(col, col + width):
@@ -563,9 +573,10 @@ class klotski:
                 return True
             '''
             # The exit is reached when the 2x2 core covers these goal cells.
-            return (klotski_board[3][1] == 'X' and klotski_board[4][2] == 'X')
+            return is_klotski_won(klotski_board)
 
         def reset_board(last_board):
+            # Rebuild the same layout and clear this bay's move count for a retry.
             klotski_currentPieces = initialise_pieces(last_board)
             klotski_board = initialise_board(self.klotski_gameCount, klotski_currentPieces)
 
@@ -584,6 +595,7 @@ class klotski:
         for _ in range(self.klotski_gameCount):
             self.klotski_moveCount.append(0)
 
+        # Finish each bay before selecting the next layout in the three-bay run.
         while not self.klotski_gameCount == 0:
             if not determine_win(self.klotski_board):
                 user_input = get_user_input()

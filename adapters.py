@@ -1,3 +1,4 @@
+# Adapt the original puzzle engines to the shared Adventure command interface.
 import builtins
 import contextlib
 import io
@@ -18,6 +19,7 @@ class ShardField:
     def __init__(self, mine_count, seed=None):
         if seed is not None:
             random.seed(seed)
+        # Skip the legacy curses setup; WORMHOLE supplies its own screen.
         game = MinesweeperGame.__new__(MinesweeperGame)
         game.screen = None
         game.STYLES = {}
@@ -109,11 +111,13 @@ class ShardField:
             r, c = row + row_step, col + col_step
             if self.is_inside(r, c) and self.game.board[r][c] == "F":
                 flags += 1
+        # Chording is valid only when the adjacent flag count matches the clue.
         ready = cell.isdigit() and cell != "0" and flags == int(cell)
         if not ready:
             message, kind, _ = self.game.break_blocks(row, col)
             return "invalid", message
         hits = 0
+        # Mark mines here so the old curses renderer never handles a mine hit.
         for row_step, col_step in NEIGHBOURS:
             r, c = row + row_step, col + col_step
             if (self.is_inside(r, c) and self.game.board[r][c] == " "
@@ -205,6 +209,7 @@ PLAYER_WORDS = {"quit": ":q", "skip": ":q", "q": ":q", "giveup": ":q",
 
 
 def read_klotski_output(text, prompt):
+    # Extract the legacy board and prompt mode so screens.py can redraw them.
     lines = text.split("\n")
     blueprint = []
     inside = False
@@ -257,6 +262,7 @@ def play_klotski(difficulty, energy, ask=None):
             result = None
         return bay, result
 
+    # Capture the standalone game's prints while Adventure handles screen I/O.
     captured = io.StringIO()
 
     def bridge_input(prompt=""):
@@ -269,6 +275,7 @@ def play_klotski(difficulty, energy, ask=None):
             return ":q"
         return to_klotski_command(typed, view["mode"])
 
+    # Route built-in prompts through ask(), then restore input even on exit.
     real_input = builtins.input
     builtins.input = bridge_input
     try:

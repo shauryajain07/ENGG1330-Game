@@ -7,6 +7,7 @@ import screens
 from adventure import Adventure
 
 
+# This module owns terminal input and drawing; Adventure owns mission state.
 DIFFICULTIES = ["easy", "medium", "hard"]
 ENTER_KEYS = [10, 13, curses.KEY_ENTER]
 BACKSPACE_KEYS = [8, 127, curses.KEY_BACKSPACE]
@@ -174,6 +175,7 @@ def run_menu(screen, difficulty):
             selected = key - ord("1")
             if selected != 2:
                 return screens.MENU_ITEMS[selected], difficulty
+        # Difficulty is edited in place; other selections return to play().
         elif key in (curses.KEY_LEFT, curses.KEY_RIGHT) and selected == 2:
             step = 1
             if key == curses.KEY_LEFT:
@@ -234,6 +236,7 @@ def run_drive_bay(screen, game):
 def run_mission(screen, game):
     if not show_story_queue(screen, game):
         return "menu"
+    # The model returns transition names; this loop renders their next screen.
     while True:
         if game.stage == "ending":
             if not show_story_queue(screen, game):
@@ -284,6 +287,7 @@ def play(screen):
         if name is None:
             continue
         result = "restart"
+        # Rebuild mission state on restart while keeping the chosen pilot/level.
         while result == "restart":
             game = Adventure(difficulty, name)
             result = run_mission(screen, game)

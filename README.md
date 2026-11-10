@@ -21,16 +21,49 @@ events. A full playthrough is designed to take about 5–10 minutes.
 
 If the terminal is too small, the game pauses and asks you to resize it.
 
-## Run the game
+## Run in Docker
 
-From the extracted project directory, inside the course container, run:
+Build and extract the source-only submission ZIP:
 
 ```bash
-python3 main.py
+python3 scripts/package_submission.py
+mkdir -p dist/extracted
+unzip -oq dist/WORMHOLE-submission.zip -d dist/extracted
 ```
 
-The game must run in a terminal window. It does not accept piped or redirected
-input.
+From the project root, start the game in the provided course container:
+
+```bash
+cd dist/extracted
+docker run --rm -it -v "$PWD:/workspace" -w /workspace \
+  engg1330-project:2026-v03 python3 main.py
+```
+
+The ZIP contains the game at its root and excludes `.git`, so the submission
+does not contain repository history. The original checkout keeps its `.git`
+folder. Do not build or submit a custom Docker image; the game uses the course
+image above. The game needs an interactive terminal and does not accept piped
+or redirected input.
+
+## Project layout
+
+The game stays at the top level of the extracted folder, with `main.py` as its
+entry point.
+
+| File | Purpose |
+| --- | --- |
+| `main.py` | Curses input, terminal setup, and screen flow |
+| `adventure.py` | Mission state, choices, battery, difficulty, and scoring |
+| `screens.py`, `story.py`, `art.py` | Screen layouts, narrative data, and ASCII scenes |
+| `adapters.py` | Connects the original puzzle engines to the adventure |
+| `minesweeper_game.py` | Shard Field rules and original terminal game |
+| `lights_out_game.py` | Reusable Lights Out rules and board state |
+| `klotski.py` | Three-bay Drive Bay puzzle and piece movement |
+| `tests/` | Automated rule, input, board-layout, and screen-size checks |
+| `ACKNOWLEDGEMENTS.md`, `ai_use.md` | Sources, acknowledgements, and AI-use record |
+
+`lights_out.py` is also retained as a standalone Lights Out entry point; the
+WORMHOLE adventure uses the reusable rules in `lights_out_game.py`.
 
 ## Purpose, rules, and controls
 
@@ -65,16 +98,34 @@ give up on that chapter, or `quit` to return to the title screen. Inside the
 Drive Bay, `quit` gives up on that bay. On the mission report, press **R** to
 replay, **M** for the title screen, or **Q** to quit.
 
+## Design notes
+
+The mission is a state machine: story choices lead into puzzles, and puzzle
+results update shared battery, difficulty, score, and later story details.
+`main.py` handles terminal input and drawing, `screens.py` builds fixed-size
+layouts, and `adventure.py` owns mission state. `adapters.py` connects the
+existing puzzle engines to that shared interface. The puzzle boards use nested
+data structures; the Lights Out solver searches first-row switch patterns and
+derives the remaining rows from them. Story choices, paid and free hints, and
+performance-based difficulty make the three classic puzzle types part of one
+mission.
+
 ## Testing and known limitations
 
-This checkout includes a small automated unit test suite. Run it with:
+Run the unit tests in the same course image using the extracted submission:
 
 ```bash
-python3 -m unittest discover -s tests -t .
+cd dist/extracted
+docker run --rm -v "$PWD:/workspace" -w /workspace \
+  engg1330-project:2026-v03 \
+  python3 -m unittest discover -s tests -t . -v
 ```
 
-The group should also extract the final ZIP into a separate copy of the starter
-project, run it in a fresh course container, and manually check:
+The tests cover puzzle rules, seeded Lights Out scrambles, valid and invalid
+commands, boundary coordinates, the shape and solvability of all twelve
+Klotski starting layouts, and 80-by-24 screen limits. Before submitting,
+extract the final ZIP into a clean folder and manually play the game in a fresh
+course container. Check:
 
 - Normal play through all three puzzles.
 - An invalid command or malformed coordinate.
@@ -85,19 +136,23 @@ project, run it in a fresh course container, and manually check:
 
 The videos should show this same submitted version.
 
-The game requires a TTY and an 80 × 24 terminal area. It is intended to run in
-the supplied course container; other environments have not been documented
-here.
+The game requires a TTY and an 80 × 24 terminal area. The tests do not replace a
+full manual playthrough, especially checking that the group can explain every
+AI-assisted layout and the resulting puzzle.
 
-## Contributions and sources
+## Contributions
 
-The following code contributions are summarized from the project files and Git
-history. Add any shared design, testing, documentation, or video work before
-submission so the record reflects the whole group's contributions.
+The following contributions are summarized from project files and repository
+history; this record describes work visible in the checkout.
 
 | Member | Main code contributions |
 | --- | --- |
-| Jain Shaurya Dileep | Adventure flow, terminal UI, story integration, puzzle adapters, and Lights Out logic |
+| Jain Shaurya Dileep | Adventure flow, terminal UI, story integration, puzzle adapters, Lights Out logic, README, and unit tests |
 | Ziyan Wang | Minesweeper / Shard Field implementation |
 | Kwok Wang Kin | Story and ASCII-art contributions |
-| SOU Cheng Hei | Klotski / Drive Bay implementation |
+| SOU Cheng Hei | Klotski / Drive Bay implementation, difficulty and hint systems, and piece-layout configurations |
+
+## Acknowledgements and sources
+
+See [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md) for source credits and
+[ai_use.md](ai_use.md) for the team's AI-use disclosure.

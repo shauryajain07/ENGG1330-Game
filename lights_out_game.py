@@ -1,3 +1,4 @@
+# Reusable Lights Out rules, kept separate from terminal input and rendering.
 import random
 
 
@@ -43,6 +44,7 @@ class LightsOutGame:
             raise IndexError("column is outside the board")
 
     def _toggle(self, row, col):
+        # A press flips itself and its orthogonal neighbors, clipped at edges.
         for row_offset, col_offset in ((0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)):
             neighbor_row = row + row_offset
             neighbor_col = col + col_offset
@@ -82,12 +84,14 @@ class LightsOutGame:
         if isinstance(moves, bool) or not isinstance(moves, int) or moves < 0:
             raise ValueError("moves must be a non-negative integer")
 
+        # Scrambling the all-on goal with legal presses guarantees solvability.
         self.reset()
         for _ in range(moves):
             self._toggle(
                 self._random.randrange(self.rows),
                 self._random.randrange(self.cols),
             )
+        # Avoid handing out a solved board if the random presses cancel out.
         if moves > 0 and self.is_solved():
             self._toggle(0, 0)
         self._move_count = 0

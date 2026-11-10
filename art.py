@@ -1,3 +1,4 @@
+# ASCII scenes and logos used by the story pages and terminal screens.
 def to_lines(picture):
     lines = picture.split("\n")
     if lines and lines[0] == "":

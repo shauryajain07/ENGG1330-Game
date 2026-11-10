@@ -1,3 +1,4 @@
+# Mission state machine: story choices lead into the three puzzle stages.
 import random
 
 import art
@@ -43,6 +44,7 @@ RATING_WORDS = {1: "EFFICIENT", 0: "STEADY", -1: "SLOPPY"}
 
 
 def read_numbers(words):
+    # Players enter one-based coordinates; puzzle models use zero-based indexes.
     if len(words) != 3:
         return None
     if not words[1].isdigit() or not words[2].isdigit():
@@ -247,6 +249,7 @@ class Adventure:
         self.stage = stage
         self.message = (story.CHAPTER_INTROS[stage] + " Level: "
                         + art.DIFFICULTY_NAMES[self.level_name()] + ".")
+        # Derive each board seed from the mission RNG for reproducible missions.
         seed = self.random.randrange(1000000)
         if stage == "navigation":
             self.field = ShardField(MINES[self.level], seed)
@@ -255,6 +258,7 @@ class Adventure:
             self.grid = LifeSupportGrid(size, scramble, seed)
 
     def use_hint(self, puzzle, cost):
+        # Use earned hints first; only a paid hint reduces the shared battery.
         if self.free_hints[puzzle] > 0:
             self.free_hints[puzzle] -= 1
             self.free_hints_used[puzzle] += 1
@@ -439,6 +443,7 @@ class Adventure:
         self.add_page(title, picture, text)
 
     def finish_puzzle(self):
+        # A cleared system reports its result, then advances to the next choice.
         if self.stage == "navigation":
             skipped = "navigation" in self.skipped
             rating = -1 if skipped else self.rate_navigation()
@@ -515,6 +520,7 @@ class Adventure:
         for points in self.part_scores().values():
             total += points
         self.score = round(total)
+        # Empty battery forces the lowest ending; otherwise total score sets it.
         if self.battery == 0 or self.score < 50:
             self.ending = "jelly"
         elif self.score >= 80:

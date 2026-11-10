@@ -1,3 +1,4 @@
+# Pure layout helpers: return styled 80x24 lines for main.py to draw.
 import textwrap
 
 import art
@@ -66,6 +67,7 @@ def add_many(lines, texts, colour="normal"):
 
 
 def finish(lines):
+    # Clip to the terminal's safe width and pad every screen to a fixed height.
     final = []
     for text, colour in lines[:HEIGHT]:
         final.append((text[:LINE_WIDTH], colour))
