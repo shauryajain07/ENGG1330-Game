@@ -1,5 +1,3 @@
-"""Curses terminal interface for the importable Lights Out game."""
-
 import argparse
 import curses
 import os
@@ -30,7 +28,6 @@ def _board_fits_play_area(rows, cols):
 
 
 def _put(screen, row, text, style=0):
-    """Draw a line without writing into the terminal's final column."""
     screen.addnstr(row, 0, text, WIDTH - 1, style)
 
 
@@ -92,7 +89,6 @@ def _draw_resize_message(screen, rows, cols):
 
 
 def _read_move(screen, game, message):
-    """Read a coordinate pair, or a new-game/quit command."""
     previous_size = None
     input_text = ""
 
@@ -172,7 +168,6 @@ def _run_game(screen, rows, cols):
 
 
 def main(argv=None):
-    """Run the terminal game. Defaults to a 4x4 board."""
     parser = argparse.ArgumentParser(
         description="Play a configurable Lights Out puzzle in the terminal.",
         formatter_class=lambda prog: argparse.HelpFormatter(prog, width=80),

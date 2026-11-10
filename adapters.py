@@ -137,6 +137,7 @@ def solve_lights(board):
     rows = len(board)
     cols = len(board[0])
     best = None
+    # Each first-row pattern forces every press below it.
     for mask in range(2 ** cols):
         lights = [list(row) for row in board]
         presses = []

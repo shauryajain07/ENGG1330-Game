@@ -562,6 +562,7 @@ class klotski:
             while self.klotski_gameCount > 0:
                 return True
             '''
+            # The exit is reached when the 2x2 core covers these goal cells.
             return (klotski_board[3][1] == 'X' and klotski_board[4][2] == 'X')
 
         def reset_board(last_board):

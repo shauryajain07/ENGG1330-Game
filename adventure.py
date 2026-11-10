@@ -53,6 +53,7 @@ def read_numbers(words):
 def efficiency_points(best_moves, moves, paid_hints, worth):
     if moves == 0:
         return 0
+    # Score against par, counting each paid hint as two extra moves.
     effort = moves + 2 * paid_hints
     if effort < best_moves:
         effort = best_moves
