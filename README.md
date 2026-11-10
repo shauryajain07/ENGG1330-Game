@@ -147,7 +147,7 @@ history; this record describes work visible in the checkout.
 | --- | --- |
 | Jain Shaurya Dileep | Adventure flow, terminal UI, story integration, puzzle adapters, Lights Out logic, README, and unit tests |
 | Ziyan Wang | Minesweeper / Shard Field implementation |
-| Kwok Wang Kin | Story and ASCII-art contributions |
+| Kwok Wang Kin | Story and ASCII-art contributions, production of trailer and demo |
 | SOU Cheng Hei | Klotski / Drive Bay implementation, difficulty and hint systems, and piece-layout configurations |
 
 ## Acknowledgements and sources
