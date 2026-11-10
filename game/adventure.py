@@ -1,9 +1,8 @@
 # Mission state machine: story choices lead into the three puzzle stages.
 import random
 
-import art
-import story
-from adapters import LifeSupportGrid, ShardField
+from . import art, story
+from .adapters import LifeSupportGrid, ShardField
 
 
 LEVELS = ["easy", "medium", "hard"]
@@ -193,14 +192,16 @@ class Adventure:
         if self.stage in story.CHOICES:
             return "Type 1, 2 or 3 to choose. Every choice changes something later!"
         if self.stage == "navigation":
-            return ("t row col = tap (open)   f row col = flag   b row col = break "
-                    "around a number   hint = safe square (8 battery)   skip")
+            return ("Shard Field: t 3 4 = open row 3, column 4; f 3 4 = flag; "
+                    "b 3 4 = break around a clue. hint = safe square (8 battery); "
+                    "skip = give up.")
         if self.stage == "power":
-            return ("p row col = press a switch (1 battery)   hint = good switch "
-                    "(4 battery)   skip = give up on this chapter")
+            return ("Life Support: p 2 3 = press row 2, column 3 (1 battery). "
+                    "hint = switch (4 battery); skip = give up.")
         if self.stage == "engine":
-            return ("Press ENTER to start the drive bay puzzle. Inside it: A up, "
-                    "hint = blueprint (1 energy), reset, quit = give up.")
+            return ("Drive Bay move examples: I down or X right (when the path is "
+                    "clear). Press ENTER to start. hint = blueprint, reset = "
+                    "restart, quit = give up.")
         return "Press ENTER to see your mission report."
 
     def make_choice(self, command):

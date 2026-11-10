@@ -4,11 +4,11 @@ from io import StringIO
 import unittest
 from unittest.mock import patch
 
-import screens
-from adapters import LifeSupportGrid, ShardField, solve_lights, to_klotski_command
-from adventure import Adventure, efficiency_points, read_numbers
-from klotski import is_klotski_won, klotski
-from lights_out_game import LightsOutGame
+from game import screens
+from game.adapters import LifeSupportGrid, ShardField, solve_lights, to_klotski_command
+from game.adventure import Adventure, efficiency_points, read_numbers
+from game.klotski import is_klotski_won, klotski
+from game.lights_out_game import LightsOutGame
 
 
 class LightsOutTests(unittest.TestCase):
@@ -143,8 +143,25 @@ class MissionHelperTests(unittest.TestCase):
     def test_drive_bay_commands_are_translated(self):
         self.assertEqual(to_klotski_command("hint", "move"), ":h")
         self.assertEqual(to_klotski_command("quit", "move"), ":q")
+        self.assertEqual(to_klotski_command("help", "move"), ":?")
         self.assertEqual(to_klotski_command("A up", "move"), "A up")
         self.assertEqual(to_klotski_command("ignored", "continue"), "")
+
+    def test_help_shows_a_move_example_for_each_puzzle(self):
+        examples = (
+            ("navigation", "t 3 4"),
+            ("power", "p 2 3"),
+            ("engine", "I down or X right"),
+        )
+        for stage, example in examples:
+            with self.subTest(stage=stage):
+                game = Adventure(difficulty="easy", player_name="Pilot", seed=1)
+                game.start_puzzle(stage)
+                game.handle("help")
+                layout = screens.game_screen(game, "")
+                visible_text = "\n".join(line for line, _ in layout)
+
+                self.assertIn(example, visible_text)
 
 
 class MissionInputTests(unittest.TestCase):
@@ -241,12 +258,13 @@ class KlotskiTests(unittest.TestCase):
     def play_board(self, board_index, commands):
         game = klotski()
         output = StringIO()
-        with patch("klotski.random.choice", return_value=board_index):
+        with patch("game.klotski.random.choice", return_value=board_index):
             with patch("builtins.input", side_effect=commands):
                 with redirect_stdout(output):
                     game.play_klotski(
                         difficulty=self.BOARD_LEVELS[board_index], energy=0
                     )
+        self.last_output = output.getvalue()
         return game
 
     def can_reach_exit(self, pieces):
@@ -344,6 +362,11 @@ class KlotskiTests(unittest.TestCase):
         game = self.play_board(0, ["Z up", ":q"])
 
         self.assertEqual(game.klotski_moveCount, [0, 0, 0])
+
+    def test_help_displays_drive_bay_move_examples(self):
+        self.play_board(0, ["help", ":q"])
+
+        self.assertIn("I down or X right", self.last_output)
 
     def test_reset_restores_the_selected_layout_and_clears_moves(self):
         game = self.play_board(0, ["B down", ":r", ":q"])

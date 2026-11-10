@@ -1,5 +1,5 @@
 # Narrative data is keyed by the stage names used in Adventure.
-import art
+from . import art
 
 
 PROLOGUE = [
@@ -202,7 +202,8 @@ HOW_TO_PLAY = [
     ],
     [
         "CHAPTER 3: THE DRIVE BAY  (Klotski, 3 bays)",
-        "  A up      slide crate A up one square (down, left, right too)",
+        "  I down    slide crate I down one square",
+        "  X right   slide core X right one square",
         "  hint      show a halfway blueprint (1 hint energy)",
         "  reset     reset this bay        quit   give up on the bay",
         "  Move the 2x2 core X to the gap at the bottom middle, three times.",

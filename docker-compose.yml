@@ -1,0 +1,9 @@
+services:
+  wormhole:
+    image: engg1330-project:2026-v03
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    stdin_open: true
+    tty: true
+    command: ["python3", "main.py"]

@@ -2,9 +2,8 @@ import curses
 import sys
 import time
 
-import adapters
-import screens
-from adventure import Adventure
+from game import adapters, screens
+from game.adventure import Adventure
 
 
 # This module owns terminal input and drawing; Adventure owns mission state.

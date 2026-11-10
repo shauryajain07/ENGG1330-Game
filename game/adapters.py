@@ -4,9 +4,9 @@ import contextlib
 import io
 import random
 
-from klotski import klotski
-from lights_out_game import LightsOutGame
-from minesweeper_game import MinesweeperGame
+from .klotski import klotski
+from .lights_out_game import LightsOutGame
+from .minesweeper_game import MinesweeperGame
 
 
 NEIGHBOURS = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
@@ -205,7 +205,8 @@ KLOTSKI_SKIP = ("[Mini-game", "Difficulty:", "Total moves made", "Energy left",
                 "Enter move", "Hint: This is an intermediate", "Game exited")
 
 PLAYER_WORDS = {"quit": ":q", "skip": ":q", "q": ":q", "giveup": ":q",
-                "hint": ":h", "h": ":h", "reset": ":r", "r": ":r"}
+                "help": ":?", "?": ":?", "hint": ":h", "h": ":h",
+                "reset": ":r", "r": ":r"}
 
 
 def read_klotski_output(text, prompt):

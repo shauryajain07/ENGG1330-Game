@@ -23,47 +23,49 @@ If the terminal is too small, the game pauses and asks you to resize it.
 
 ## Run in Docker
 
-Build and extract the source-only submission ZIP:
+Extract the submission ZIP and open a terminal in the extracted project
+folder, where `README.md` and `main.py` are located. Start the game with Docker
+Compose:
 
 ```bash
-python3 scripts/package_submission.py
-mkdir -p dist/extracted
-unzip -oq dist/WORMHOLE-submission.zip -d dist/extracted
+docker compose run --rm wormhole
 ```
 
-From the project root, start the game in the provided course container:
+The Compose service uses the downloaded course image and mounts the current
+folder into the container. The equivalent command inside the container is
+`python3 main.py`. You can also start it directly with Docker:
 
 ```bash
-cd dist/extracted
 docker run --rm -it -v "$PWD:/workspace" -w /workspace \
   engg1330-project:2026-v03 python3 main.py
 ```
 
-The ZIP contains the game at its root and excludes `.git`, so the submission
-does not contain repository history. The original checkout keeps its `.git`
-folder. Do not build or submit a custom Docker image; the game uses the course
-image above. The game needs an interactive terminal and does not accept piped
-or redirected input.
+The Compose file uses the provided image without building a custom image or
+installing packages. The submission ZIP contains the game at its root and
+excludes `.git` and its history; the original checkout keeps its `.git` folder.
+The game needs an interactive terminal and does not accept piped or redirected
+input.
 
 ## Project layout
 
-The game stays at the top level of the extracted folder, with `main.py` as its
-entry point.
+`main.py` stays at the top level for the required entry point. Game modules
+live in `game/`, tests in `tests/`, and Docker Compose config at the root.
 
 | File | Purpose |
 | --- | --- |
 | `main.py` | Curses input, terminal setup, and screen flow |
-| `adventure.py` | Mission state, choices, battery, difficulty, and scoring |
-| `screens.py`, `story.py`, `art.py` | Screen layouts, narrative data, and ASCII scenes |
-| `adapters.py` | Connects the original puzzle engines to the adventure |
-| `minesweeper_game.py` | Shard Field rules and original terminal game |
-| `lights_out_game.py` | Reusable Lights Out rules and board state |
-| `klotski.py` | Three-bay Drive Bay puzzle and piece movement |
+| `game/adventure.py` | Mission state, choices, battery, difficulty, and scoring |
+| `game/screens.py`, `game/story.py`, `game/art.py` | Screen layouts, narrative data, and ASCII scenes |
+| `game/adapters.py` | Connects the puzzle engines to the adventure |
+| `game/minesweeper_game.py` | Shard Field rules and original terminal game |
+| `game/lights_out_game.py` | Reusable Lights Out rules and board state |
+| `game/klotski.py` | Three-bay Drive Bay puzzle and piece movement |
+| `docker-compose.yml` | Runs the game in the course-provided container image |
 | `tests/` | Automated rule, input, board-layout, and screen-size checks |
 | `ACKNOWLEDGEMENTS.md`, `ai_use.md` | Sources, acknowledgements, and AI-use record |
 
-`lights_out.py` is also retained as a standalone Lights Out entry point; the
-WORMHOLE adventure uses the reusable rules in `lights_out_game.py`.
+The standalone Lights Out interface is `game/lights_out.py`; the adventure
+uses the reusable rules in `game/lights_out_game.py`.
 
 ## Purpose, rules, and controls
 
@@ -80,17 +82,17 @@ Enter a pilot name of up to 12 characters; leaving it blank uses “Rookie”. T
 The mission has three connected puzzle chapters:
 
 1. **The Shard Field (Minesweeper):** Open every safe square on the 9 × 9 grid.
-   Coordinates start at 1. Use `t row col` to open a square, `f row col` to
-   place or remove a flag, and `b row col` to open around a number when enough
+   Coordinates start at 1. Use `t 3 4` to open row 3, column 4, `f 3 4` to
+   place or remove a flag, and `b 3 4` to open around a number when enough
    flags are marked. `hint` spends battery to suggest a square.
-2. **Life Support Grid (Lights Out):** Turn every light on. Use `p row col` to
-   press a switch; it flips that light and its up, down, left, and right
-   neighbours. Coordinates start at 1. `hint` spends battery to suggest a
-   switch.
+2. **Life Support Grid (Lights Out):** Turn every light on. Use `p 2 3` to
+   press the switch at row 2, column 3; it flips that light and its up, down,
+   left, and right neighbours. Coordinates start at 1. `hint` spends battery
+   to suggest a switch.
 3. **The Drive Bay (Klotski):** Move the 2 × 2 core marked `X` to the gap at the
-   bottom of each of three bays. Enter a move such as `A up` to slide crate A.
-   `hint` shows a blueprint, `reset` restarts the current bay, and `quit` gives
-   up on it.
+   bottom of each of three bays. Move format examples are `I down` and
+   `X right`; a move works when its path is clear. `hint` shows a blueprint,
+   `reset` restarts the current bay, and `quit` gives up on it.
 
 In story-choice scenes, enter **1**, **2**, or **3**. During the mission, enter
 `help` for the current commands, `restart` to restart the mission, `skip` to
@@ -102,22 +104,20 @@ replay, **M** for the title screen, or **Q** to quit.
 
 The mission is a state machine: story choices lead into puzzles, and puzzle
 results update shared battery, difficulty, score, and later story details.
-`main.py` handles terminal input and drawing, `screens.py` builds fixed-size
-layouts, and `adventure.py` owns mission state. `adapters.py` connects the
-existing puzzle engines to that shared interface. The puzzle boards use nested
-data structures; the Lights Out solver searches first-row switch patterns and
-derives the remaining rows from them. Story choices, paid and free hints, and
-performance-based difficulty make the three classic puzzle types part of one
-mission.
+`main.py` handles terminal input and drawing, `game/screens.py` builds
+fixed-size layouts, and `game/adventure.py` owns mission state.
+`game/adapters.py` connects the puzzle engines to that shared interface. The
+boards use nested data structures; the Lights Out solver searches first-row
+switch patterns and derives the remaining rows from them. Story choices, paid
+and free hints, and performance-based difficulty make the three puzzle types
+part of one mission.
 
 ## Testing and known limitations
 
-Run the unit tests in the same course image using the extracted submission:
+Run the unit tests in the same course image from the extracted project folder:
 
 ```bash
-cd dist/extracted
-docker run --rm -v "$PWD:/workspace" -w /workspace \
-  engg1330-project:2026-v03 \
+docker compose run --rm wormhole \
   python3 -m unittest discover -s tests -t . -v
 ```
 

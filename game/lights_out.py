@@ -4,7 +4,7 @@ import curses
 import os
 import sys
 
-from lights_out_game import LightsOutGame
+from .lights_out_game import LightsOutGame
 
 
 WIDTH = 80

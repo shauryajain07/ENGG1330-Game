@@ -1,8 +1,7 @@
 # Pure layout helpers: return styled 80x24 lines for main.py to draw.
 import textwrap
 
-import art
-import story
+from . import art, story
 
 
 WIDTH = 80
@@ -316,7 +315,7 @@ def engine_body(game):
         "Slide the big X into the gap at the",
         "bottom middle of each bay.",
         "",
-        "  A up / B left     slide a crate",
+        "  I down / X right  slide one square",
         "  hint   halfway blueprint (1 energy)",
         "  reset  start this bay again",
         "  quit   give up on the bay",
@@ -392,8 +391,8 @@ def drive_bay_screen(game, bay, view, typed, energy_given):
         elif not view["blueprint"]:
             message = "Core freed! TARS loads the next bay."
     else:
-        message = "Type a crate letter and a direction, like: A up"
-        reminder = "A up / B left = slide   hint   reset   quit"
+        message = "Move format examples: I down or X right."
+        reminder = "I down / X right = move   help   hint   reset   quit"
     add(lines, message, "yellow")
     add(lines, "")
     add(lines, "> " + typed, "yellow")

@@ -9,12 +9,6 @@ def is_klotski_won(board):
     return board[3][1] == 'X' and board[4][2] == 'X'
 
 
-#lowercase input is fine
-#change the number of rounds in klotski_gameCount, klotski_moveCount, win exception (~line 220) and update the message in initialise_board (~line 240)
-#other dimensions than 4*5 are not yet tested but should be fine; but the dimensions must be consistent since the dimensions of the board is fixed in initialise_board() (default 4*5)
-#klotski_board and klotski_currentPieces can become async and is synced in move_piece() and reset_board() (using initialise_board); always update klotski_board, klotski_currentPieces from initialise_game() to avoid async between rounds
-#returns new difficulty as numbers 0,1,2 directly, and remaining energy after this minigame as tuple
-
 class klotski:
     def __init__(self):
         self.klotski_errorMessage = ""
@@ -33,7 +27,6 @@ class klotski:
 
     def play_klotski(self, difficulty=None, energy=None):
         def initialise_pieces(last_board=None, difficulty=difficulty):
-            # SOU Cheng Hei's AI-assisted layouts are disclosed in ai_use.md.
             pieceArrangements = [ #row and col coords are the top left corner of piece, size is (height, width)
                 #board 0 below
                 {
@@ -193,51 +186,43 @@ class klotski:
                 }
             ]
 
-            '''
-            ez: 0, 1, 2, 5, 11
-            medium: 3, 4, 6, 7
-            hard: 8, 9, 10
-            '''
-
-            if last_board is not None: #for reset
+            if last_board is not None:
                 piece = copy.deepcopy(pieceArrangements[last_board])
                 return piece
 
             if difficulty is None:
                 self.effectiveDifficulty = 1
                 index = random.randrange(len(pieceArrangements))
-            elif difficulty == 0: #easy
+            elif difficulty == 0:
                 easyBoards = [0, 1, 2, 5, 11]
                 self.klotski_moveThreshold = 25
                 self.klotski_difficultyRate = "easy"
                 self.effectiveDifficulty = 0
                 index = random.choice(easyBoards)
-            elif difficulty == 1: #medium   
+            elif difficulty == 1:
                 mediumBoards = [3, 4, 6, 7]
                 self.klotski_difficultyRate = "medium"
                 self.effectiveDifficulty = 1
                 index = random.choice(mediumBoards)
-            elif difficulty == 2: #hard
+            elif difficulty == 2:
                 hardBoards = [8, 9, 10]
                 self.klotski_moveThreshold = 45
                 self.effectiveDifficulty = 2
                 self.klotski_difficultyRate = "hard"
                 index = random.choice(hardBoards)
 
-            #index = 11 #specify board here if needed
-
-            if not self.klotski_usedBoards or index not in self.klotski_usedBoards or len(self.klotski_usedBoards) != 3: #win condition
+            if (not self.klotski_usedBoards or index not in self.klotski_usedBoards
+                    or len(self.klotski_usedBoards) != 3):
                 piece = copy.deepcopy(pieceArrangements[index])
                 self.klotski_usedBoards.append(index)
             else:
-                #print(self.klotski_usedBoards)
                 return initialise_pieces()
             
             return piece
 
         def initialise_board(klotski_gameCount,klotski_currentPieces):
             # Expand each piece rectangle into the shared 5-row by 4-column grid.
-            self.klotski_board = [[' ' for _ in range(4)] for _ in range(5)] #create a list of 5 lists (rows), each with 4 elements (columns); change here also if dimension changes
+            self.klotski_board = [[' ' for _ in range(4)] for _ in range(5)]
             
             for piece, info in klotski_currentPieces.items():
                 row, col = info['row'], info['col']
@@ -246,7 +231,6 @@ class klotski:
                     for c in range(col, col + width):
                         self.klotski_board[r][c] = piece
 
-            #change also the no of rounds here!!
             self.klotski_errorMessage = f"Your goal is to retrieve the engine part 'X' by moving the obstacles around.\nMove 'X' to the bottom middle of the board to retrieve it! \nYou have retrieved {3 - klotski_gameCount}/3 of the engine parts."
             
             return self.klotski_board
@@ -255,7 +239,6 @@ class klotski:
             klotski_currentPieces = initialise_pieces(last_board, difficulty)
             klotski_board = initialise_board(klotski_gameCount, klotski_currentPieces)
             display_board(klotski_board)
-            #print(self.effectiveDifficulty)
 
             return klotski_board, klotski_currentPieces
 
@@ -482,7 +465,6 @@ class klotski:
         
         def display_board(klotski_board):
             clear_terminal()
-            #print(f"Boards used: {self.klotski_usedBoards}") #for debugging
             print("[Mini-game 3: Klotski]")
             print(f"Difficulty: {self.klotski_difficultyRate}")
             print(f"Total moves made: {sum(self.klotski_moveCount)}")
@@ -505,13 +487,15 @@ class klotski:
 
         def get_user_input():
             while True:
-                if self.klotski_energy is not None:
-                    print_wrap("Enter move (e.g., A up, B down, etc.), ':r' to reset board, or ':h' for hint: ")
-                else:
-                    print_wrap("Enter move (e.g., A up, B down, etc.), ':r' to reset board, ':h' for hint, or ':q' to exit: ")
+                print_wrap(
+                    "Enter a move (e.g., I down or X right), 'help' for examples, "
+                    "':r' to reset, ':h' for a hint, or ':q' to exit: "
+                )
                 user_input = input("")
                 if user_input.lower() == ':q':
                     return 'quit'
+                if user_input.lower() in (':?', 'help', '?'):
+                    return 'help'
                 if user_input.lower() == ':r':
                     return 'reset'
                 if user_input.lower() == ':h':
@@ -566,12 +550,6 @@ class klotski:
                 self.klotski_errorMessage = "Invalid move. The piece cannot be moved in that direction."
 
         def determine_win(klotski_board):
-            #both for debugging
-            #return False
-            '''
-            while self.klotski_gameCount > 0:
-                return True
-            '''
             # The exit is reached when the 2x2 core covers these goal cells.
             return is_klotski_won(klotski_board)
 
@@ -602,12 +580,18 @@ class klotski:
                 if user_input == 'quit': 
                     print_wrap("Game exited.")
                     return
+                if user_input == 'help':
+                    self.klotski_errorMessage = (
+                        "Move one piece one square. Examples: I down or X right. "
+                        "Type hint, reset, or quit for other actions."
+                    )
+                    display_board(self.klotski_board)
+                    continue
                 if user_input == 'reset':
                     self.klotski_board, self.klotski_currentPieces = reset_board(self.klotski_usedBoards[-1])
                     display_board(self.klotski_board)
                     continue
                 if user_input == 'hint':
-                    #print(self.klotski_usedBoards[-1])
                     display_hint(self.klotski_usedBoards[-1], energy=self.klotski_energy)
                     continue
 
