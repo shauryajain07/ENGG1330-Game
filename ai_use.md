@@ -25,3 +25,14 @@ current game.
 - What was kept, changed, or rejected, and how results were checked (tests or
   corrections): The AI-created ASCII art in `game/art.py` is used in the game.
   The course-container terminal smoke check displayed the title artwork.
+
+## Entry 3
+
+- Member and date: Kwok Wang Kin; 11 November 2026.
+- Tool and model/version: Gemini.
+- Purpose: Create voice cover and visuals for the first few seconds of the trailer.
+- Substantial parts affected (files/materials): Trailer.
+- What was kept, changed, or rejected, and how results were checked (tests or
+  corrections): Kept the generated opening and voiceover, rejected the first single-pass output,
+  and changed to 1 clips and 5 individual audios. Checked accuracy by comparing the visuals,
+  audio and game details.
