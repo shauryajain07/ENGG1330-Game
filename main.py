@@ -1,4 +1,5 @@
 import curses
+import os
 import sys
 import time
 
@@ -52,7 +53,18 @@ def style_for(colour):
     return curses.A_NORMAL
 
 
+def sync_size(screen):
+    try:
+        actual = os.get_terminal_size(sys.stdout.fileno())
+    except OSError:
+        return
+    size = (max(1, actual.lines), max(1, actual.columns))
+    if size != screen.getmaxyx():
+        curses.resizeterm(*size)
+
+
 def is_too_small(screen):
+    sync_size(screen)
     rows, cols = screen.getmaxyx()
     return rows < screens.HEIGHT or cols < screens.WIDTH
 
@@ -300,6 +312,7 @@ def main():
     if not sys.stdin.isatty() or not sys.stdout.isatty():
         print("Please run this game in a terminal window: python3 main.py")
         return
+    curses.use_env(False)
     try:
         curses.wrapper(play)
     except KeyboardInterrupt:
